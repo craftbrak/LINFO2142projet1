@@ -1,0 +1,27 @@
+# Dockerfile for FRRouting (FRR)
+FROM ubuntu:22.04
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install dependencies and FRRouting
+RUN apt-get update && \
+    apt-get install -y \
+        frr frr-snmp frr-pythontools iproute2 \
+        curl gnupg2 lsb-release \
+        --no-install-recommends && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Enable FRR daemons (adjust to your needs: bgpd, ospfd, etc.)
+RUN sed -i 's/bgpd=no/bgpd=yes/' /etc/frr/daemons && \
+    sed -i 's/ospfd=no/ospfd=yes/' /etc/frr/daemons
+
+# Expose necessary ports (adjust based on your protocols)
+EXPOSE 2601 2604 2605 179
+
+# Copy the FRR configuration file if you have one
+COPY frr.conf /etc/frr/frr.conf
+
+# Set the default command to start FRRouting
+CMD ["/usr/lib/frr/frrinit.sh", "start"]
